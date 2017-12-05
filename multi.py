@@ -15,7 +15,7 @@ victimTemplate_U = None
 
 def recognizeVictim(camera):
     # === variables ===
-
+    
     victims = ""
 
     maxPercentage_H = 0
@@ -110,10 +110,10 @@ def recognizeVictim(camera):
     # ==================
     # === output frame window ====
 
-    if camera == 0:
-        cv2.imshow('Camera0', frame)
-    else:
-        cv2.imshow('Camera1', frame)  
+    # if camera == 0:
+    #     cv2.imshow('Camera0', frame)
+    # else:
+    #     cv2.imshow('Camera1', frame) 
 
     return victim
 
@@ -144,31 +144,41 @@ def init():
 # === main ===
 init()
 while True:
+    os.system('echo 255 > /sys/class/leds/led0/brightness')
+    print "waiting serial signal..."
     getdata = mbed.read(1)
+    os.system('echo 0 > /sys/class/leds/led0/brightness')
     print getdata
     if getdata is 'r':
         camera0 = recognizeVictim(0)
         if camera0 is 'H':
-            mbed.write("4");
+            mbed.write("49");
             print "send 54"
         elif camera0 is 'S':
-            mbed.write("5")
-            print "send 55"
+            mbed.write("2")
+            print "send 50"
         elif camera0 is 'U':
-            mbed.write("6")
-            print "send 56"
+            mbed.write("3")
+            print "send 51"
+        elif camera0 is 'N':
+            mbed.write('0')
+            print "send 48 null"
 
     elif getdata is 'l':
         camera1 = recognizeVictim(1)
         if camera1 is 'H':
-            mbed.write("7");
-            print "send 57"
+            mbed.write("4");
+            print "send 52"
         elif camera1 is 'S':
-            mbed.write("8")
-            print "send 58"
+            mbed.write("5")
+            print "send 53"
         elif camera1 is 'U':
-            mbed.write("9")
-            print "send 59"
+            mbed.write("6")
+            print "send 54"
+        elif camera1 is 'N':
+            mbed.write('0')
+            print "send 48 null"
+
     
 
 cam.release()
