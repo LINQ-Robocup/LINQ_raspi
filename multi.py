@@ -4,38 +4,39 @@ import sys
 import os
 import serial
 
-# global variables
+# === global variables ===
 mbed = None
-cap = None
-cap2 = None
+cam = None
+cam2 = None
 
-temp_h = None
-temp_s = None
-temp_u = None
+victimTemplate_H = None
+victimTemplate_S = None
+victimTemplate_U = None
 
 def recognizeVictim(camera):
     # === variables ===
 
     victims = ""
 
-    max_h = 0
-    max_s = 0
-    max_u = 0
+    maxPercentage_H = 0
+    maxPercentage_S = 0
+    maxPercentage_U = 0
 
-    top_left_h = (0,0)
-    bottom_right_h = (0,0)
+    positionTopLeft_H = (0,0)
+    positionBottomRight_H = (0,0)
 
-    top_left_s = (0,0)
-    bottom_right_s = (0,0)
+    positionTopLeft_S = (0,0)
+    positionBottomRight_S = (0,0)
 
-    top_left_u = (0,0)
-    bottom_right_u = (0,0)
+    positionTopLeft_U = (0,0)
+    positionBottomRight_U = (0,0)
+
     # ==================
-
+    # === read image from camera & convert to binary image ===
     if camera == 0:
-        ret, frame = cap.read()
+        ret, frame = cam.read()
     else:
-        ret, frame = cap2.read()
+        ret, frame = cam2.read()
 
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -43,96 +44,104 @@ def recognizeVictim(camera):
     max_pixel = 255
     ret, frame = cv2.threshold(frame, thresh, max_pixel, cv2.THRESH_BINARY)
 
+    # ==================
+    # === detect victims ===
+
     #detect H
-    result = cv2.matchTemplate(frame, temp_h, cv2.TM_CCOEFF_NORMED)
+    result = cv2.matchTemplate(frame, victimTemplate_H, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
     if max_val > 0.40:	
-        # global top_left_h
-        top_left_h = max_loc
-        w, h = temp_h.shape[::-1]
-        # global bottom_right_h
-        bottom_right_h = (top_left_h[0] + w, top_left_h[1] + h)	
-        max_h = max_val
+        positionTopLeft_H = max_loc
+        w, h = victimTemplate_H.shape[::-1]
+        positionBottomRight_H = (positionTopLeft_H[0] + w, positionTopLeft_H[1] + h)	
+        maxPercentage_H = max_val
         
     #detect S
-    result = cv2.matchTemplate(frame, temp_s, cv2.TM_CCOEFF_NORMED)
+    result = cv2.matchTemplate(frame, victimTemplate_S, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
     if max_val > 0.40:	
-        # global top_left_s
-        top_left_s = max_loc
-        w, h = temp_h.shape[::-1]
-        # global bottom_right_s
-        bottom_right_s = (top_left_s[0] + w, top_left_s[1] + h)	
-        max_s = max_val
+        positionTopLeft_S = max_loc
+        w, h = victimTemplate_H.shape[::-1]
+        positionBottomRight_S = (positionTopLeft_S[0] + w, positionTopLeft_S[1] + h)	
+        maxPercentage_S = max_val
 
         
     #detect U
-    result = cv2.matchTemplate(frame, temp_u, cv2.TM_CCOEFF_NORMED)
+    result = cv2.matchTemplate(frame, victimTemplate_U, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
     if max_val > 0.40:	
-        # global top_left_u
-        top_left_u = max_loc
-        w, h = temp_h.shape[::-1]
-        # global bottom_right_u
-        bottom_right_u = (top_left_u[0] + w, top_left_u[1] + h)	
-        max_u = max_val
- 
-    result = max_h
-    victims = "H"
-    
-    if result < max_s:
-        result = max_s
-        victims = "S"
+        positionTopLeft_U = max_loc
+        w, h = victimTemplate_H.shape[::-1]
+        positionBottomRight_U = (positionTopLeft_U[0] + w, positionTopLeft_U[1] + h)	
+        maxPercentage_U = max_val
 
-    if result < max_u:
-        result = max_u
-        victims = "U"
+    # ========================
+    # === select highest matching rate victim ===
+
+    resultPercentage = 0.4
+    victim = "N"
+    
+    if resultPercentage < maxPercentage_H:
+        resultPercentage = maxPercentage_H
+        victim = "H"
+
+    if resultPercentage < maxPercentage_S:
+        resultPercentage = maxPercentage_S
+        victim = "S"
+
+    if resultPercentage < maxPercentage_U:
+        resultPercentage = maxPercentage_U
+        victim = "U"
 
     
-    if victims == "H":
-        cv2.rectangle(frame, top_left_h, bottom_right_h, (0, 0, 200), 5)
-        cv2.putText(frame,"H", (top_left_h[0] -10, top_left_h[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
-    if victims == "S":
-        cv2.rectangle(frame, top_left_s, bottom_right_s, (0, 0, 200), 5)
-        cv2.putText(frame,"S", (top_left_s[0] -10, top_left_s[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
+    if victim == "H":
+        cv2.rectangle(frame, positionTopLeft_H, positionBottomRight_H, (0, 0, 200), 5)
+        cv2.putText(frame,"H", (positionTopLeft_H[0] -10, positionTopLeft_H[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
+    if victim == "S":
+        cv2.rectangle(frame, positionTopLeft_S, positionBottomRight_S, (0, 0, 200), 5)
+        cv2.putText(frame,"S", (positionTopLeft_S[0] -10, positionTopLeft_S[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
    
-    if victims == "U":
-        cv2.rectangle(frame, top_left_u, bottom_right_u, (0, 0, 200), 5)
-        cv2.putText(frame,"U", (top_left_u[0] -10, top_left_u[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
+    if victim == "U":
+        cv2.rectangle(frame, positionTopLeft_U, positionBottomRight_U, (0, 0, 200), 5)
+        cv2.putText(frame,"U", (positionTopLeft_U[0] -10, positionTopLeft_U[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
     
-    # print "Camera: " + str(camera) + " | " + victims + " | " + str(max_h) + " | " + str(max_s) + " | " + str(max_u)
+    # print "Camera: " + str(camera) + " | " + victims + " | " + str(maxPercentage_H) + " | " + str(maxPercentage_S) + " | " + str(maxPercentage_U)
     
+    # ==================
+    # === output frame window ====
+
     if camera == 0:
         cv2.imshow('Camera0', frame)
     else:
         cv2.imshow('Camera1', frame)  
 
-    return victims  			
+    return victim
+
+    # ==================
 
 
 def init():
-    global cap, cap2, temp_h, temp_s, temp_u, mbed
-    cap = cv2.VideoCapture(0)
-    if cap.isOpened() is False:
+    global cam, cam2, victimTemplate_H, victimTemplate_S, victimTemplate_U, mbed
+    cam = cv2.VideoCapture(0)
+    if cam.isOpened() is False:
         sys.exit()
-    cap2 = cv2.VideoCapture(1)
-    if cap2.isOpened() is False:
+    cam2 = cv2.VideoCapture(1)
+    if cam2.isOpened() is False:
         sys.exit()
-    cap.set(3, 320)
-    cap.set(4, 240)
-    cap2.set(3, 320)
-    cap2.set(4, 240)
-    temp_h = cv2.imread('maze_H.png', 0)
-    temp_s = cv2.imread('maze_S.png', 0)
-    temp_u = cv2.imread('maze_U.png', 0)
-    #frame = cv2.imread('maze_H.png', 0)
+    cam.set(3, 320)
+    cam.set(4, 240)
+    cam2.set(3, 320)
+    cam2.set(4, 240)
+    victimTemplate_H = cv2.imread('maze_H.png', 0)
+    victimTemplate_S = cv2.imread('maze_S.png', 0)
+    victimTemplate_U = cv2.imread('maze_U.png', 0)
 
     if os.system('ls -al /dev/ttyACM0') is 0:
         mbed = serial.Serial('/dev/ttyACM0')
     else:
         mbed = serial.Serial('/dev/ttyACM1')
 
-# main
+# === main ===
 init()
 while True:
     getdata = mbed.read(1)
@@ -162,6 +171,6 @@ while True:
             print "send 59"
     
 
-cap.release()
-cap2.release()
+cam.release()
+cam2.release()
 cv2.destroyAllWindows()
