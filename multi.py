@@ -132,9 +132,9 @@ def init():
     cam.set(4, 240)
     cam2.set(3, 320)
     cam2.set(4, 240)
-    victimTemplate_H = cv2.imread('maze_H.png', 0)
-    victimTemplate_S = cv2.imread('maze_S.png', 0)
-    victimTemplate_U = cv2.imread('maze_U.png', 0)
+    victimTemplate_H = cv2.imread('images/maze_H.png', 0)
+    victimTemplate_S = cv2.imread('images/maze_S.png', 0)
+    victimTemplate_U = cv2.imread('images/maze_U.png', 0)
 
     if os.system('ls -al /dev/ttyACM0') is 0:
         mbed = serial.Serial('/dev/ttyACM0')
