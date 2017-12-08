@@ -15,7 +15,7 @@ victimTemplate_U = None
 
 def recognizeVictim(camera):
     # === variables ===
-    
+
     victims = ""
 
     maxPercentage_H = 0
@@ -105,16 +105,6 @@ def recognizeVictim(camera):
         cv2.rectangle(frame, positionTopLeft_U, positionBottomRight_U, (0, 0, 200), 5)
         cv2.putText(frame,"U", (positionTopLeft_U[0] -10, positionTopLeft_U[1] -10), cv2.FONT_HERSHEY_PLAIN,5.0,(0,0,200),8)
     
-    # print "Camera: " + str(camera) + " | " + victims + " | " + str(maxPercentage_H) + " | " + str(maxPercentage_S) + " | " + str(maxPercentage_U)
-    
-    # ==================
-    # === output frame window ====
-
-    # if camera == 0:
-    #     cv2.imshow('Camera0', frame)
-    # else:
-    #     cv2.imshow('Camera1', frame) 
-
     return victim
 
     # ==================
