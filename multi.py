@@ -50,7 +50,7 @@ def recognizeVictim(camera):
     #detect H
     result = cv2.matchTemplate(frame, victimTemplate_H, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    if max_val > 0.40:	
+    if max_val > 0:	
         positionTopLeft_H = max_loc
         w, h = victimTemplate_H.shape[::-1]
         positionBottomRight_H = (positionTopLeft_H[0] + w, positionTopLeft_H[1] + h)	
@@ -59,7 +59,7 @@ def recognizeVictim(camera):
     #detect S
     result = cv2.matchTemplate(frame, victimTemplate_S, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    if max_val > 0.40:	
+    if max_val > 0:	
         positionTopLeft_S = max_loc
         w, h = victimTemplate_H.shape[::-1]
         positionBottomRight_S = (positionTopLeft_S[0] + w, positionTopLeft_S[1] + h)	
@@ -69,7 +69,7 @@ def recognizeVictim(camera):
     #detect U
     result = cv2.matchTemplate(frame, victimTemplate_U, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    if max_val > 0.40:	
+    if max_val > 0:	
         positionTopLeft_U = max_loc
         w, h = victimTemplate_H.shape[::-1]
         positionBottomRight_U = (positionTopLeft_U[0] + w, positionTopLeft_U[1] + h)	
@@ -78,7 +78,7 @@ def recognizeVictim(camera):
     # ========================
     # === select highest matching rate victim ===
 
-    resultPercentage = 0.4
+    resultPercentage = 0
     victim = "N"
     
     if resultPercentage < maxPercentage_H:
@@ -108,6 +108,11 @@ def recognizeVictim(camera):
     return victim
 
     # ==================
+    if camera == 0:
+        cv2.imshow('Camera0', frame)
+    else:
+        cv2.imshow('Camera1', frame) 
+    cv2.waitKey(1)
 
 
 def init():
@@ -142,32 +147,32 @@ while True:
     if getdata is 'r':
         camera0 = recognizeVictim(0)
         if camera0 is 'H':
-            mbed.write("49");
-            print "send 54"
+            mbed.write("1");
+            print "send H49"
         elif camera0 is 'S':
             mbed.write("2")
-            print "send 50"
+            print "send S50"
         elif camera0 is 'U':
             mbed.write("3")
-            print "send 51"
+            print "send U51"
         elif camera0 is 'N':
             mbed.write('0')
-            print "send 48 null"
+            print "send N48"
 
     elif getdata is 'l':
         camera1 = recognizeVictim(1)
         if camera1 is 'H':
-            mbed.write("4");
-            print "send 52"
+            mbed.write("1");
+            print "send H49"
         elif camera1 is 'S':
-            mbed.write("5")
-            print "send 53"
+            mbed.write("2")
+            print "send S50"
         elif camera1 is 'U':
-            mbed.write("6")
-            print "send 54"
+            mbed.write("3")
+            print "send U51"
         elif camera1 is 'N':
             mbed.write('0')
-            print "send 48 null"
+            print "send N48"
 
     
 
